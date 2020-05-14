@@ -6,8 +6,8 @@ class ResidualNet(nn.Module):
     def __init__(self, 
                  in_features:int  = 3,
                  out_features:int = 3,
-                 nhiddenunits:int = 128,
-                 activation = nn.ReLU()):
+                 n_hiddenUnits:int = 128,
+                 activation = nn.Tanh()):
         
         """
         Create a simple residual neural network with pytorch.
@@ -25,7 +25,7 @@ class ResidualNet(nn.Module):
         ################################################################################################
         #   The architecture of the network is :                                                       #
         #                                                                                              #
-        #   x --> activation[layer1] ---> activation[layer2] ---> [layer3] ----> 0.5 * [layer3] **2    #
+        #   x --> activation[layer1] ---> activation[layer2] ---> [layer3] ---->       [layer3] **2    #
         #                                                         residual               value         #
         ################################################################################################    
         """
@@ -35,12 +35,12 @@ class ResidualNet(nn.Module):
         
         self.in_features = in_features
         self.out_features = out_features
-        self.nhiddenunits = nhiddenunits
+        self.n_hiddenUnits = n_hiddenUnits
         
         # Structure
-        self.fc1 = nn.Linear(self.in_features, self.nhiddenunits)
-        self.fc2 = nn.Linear(self.nhiddenunits, self.nhiddenunits)
-        self.fc3 = nn.Linear(self.nhiddenunits, self.out_features)
+        self.fc1 = nn.Linear(self.in_features, self.n_hiddenUnits)
+        self.fc2 = nn.Linear(self.n_hiddenUnits, self.n_hiddenUnits)
+        self.fc3 = nn.Linear(self.n_hiddenUnits, self.out_features)
 
         # Weight Initialization protocol
         nn.init.kaiming_uniform_(self.fc1.weight)
@@ -57,7 +57,7 @@ class ResidualNet(nn.Module):
       
         self.device = torch.device('cpu')
         self.to(self.device)
-        print(self)
+
         
         
     def forward(self, x):
@@ -82,7 +82,7 @@ class ResidualNet(nn.Module):
         x = self.fc3(x) 
         return x
         
-    def jacobian_value(self, x):
+    def jacobian(self, x):
         """
         Returns the jacobian of the value , i.e jacobian of neural_net.forward(x), w.r.t x.
         This is the true jacobian of the neural network.
@@ -99,7 +99,7 @@ class ResidualNet(nn.Module):
         return j
     
     
-    def batch_jacobian_value(self, x):
+    def batch_jacobian(self, x):
         """
         Wrapper around self.jacobian_value for multiple inputs
         
@@ -110,10 +110,10 @@ class ResidualNet(nn.Module):
         """
         j = []
         for xyz in x:
-            j.append(self.jacobian_value(xyz))
+            j.append(self.jacobian(xyz))
         return torch.stack(j).squeeze()
     
-    def hessian_value(self, x):
+    def hessian(self, x):
         """
         Returns the Hessian of the value , i.e jacobian of neural_net.forward(x), w.r.t x.
         This is the true hessian of the neural network.
@@ -129,7 +129,7 @@ class ResidualNet(nn.Module):
         h = torch.autograd.functional.hessian(self.forward, x).squeeze()
         return h
     
-    def batch_hessian_value(self, x):
+    def batch_hessian(self, x):
         """
         Wrapper around self.hessian_value for multiple inputs
         
@@ -140,7 +140,7 @@ class ResidualNet(nn.Module):
         """
         h = []
         for xyz in x:
-            h.append(self.hessian_value(xyz))
+            h.append(self.hessian(xyz))
         return torch.stack(h).squeeze()
     
     #.....Gauss Approximation

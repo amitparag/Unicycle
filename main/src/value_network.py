@@ -7,7 +7,7 @@ class ValueNet(nn.Module):
     def __init__(self, 
                  in_features:int  = 3,
                  out_features:int = 1,
-                 nhiddenunits:int = 64,
+                 n_hiddenUnits:int = 64,
                  activation = nn.Tanh()
                 ):
         
@@ -38,12 +38,12 @@ class ValueNet(nn.Module):
         
         self.in_features = in_features
         self.out_features = out_features
-        self.nhiddenunits = nhiddenunits
+        self.n_hiddenUnits = n_hiddenUnits
         
         # Structure
-        self.fc1 = nn.Linear(self.in_features, self.nhiddenunits)
-        self.fc2 = nn.Linear(self.nhiddenunits, self.nhiddenunits)
-        self.fc3 = nn.Linear(self.nhiddenunits, self.out_features)
+        self.fc1 = nn.Linear(self.in_features, self.n_hiddenUnits)
+        self.fc2 = nn.Linear(self.n_hiddenUnits, self.n_hiddenUnits)
+        self.fc3 = nn.Linear(self.n_hiddenUnits, self.out_features)
 
         # Weight Initialization protocol
         nn.init.kaiming_uniform_(self.fc1.weight)
@@ -58,9 +58,9 @@ class ValueNet(nn.Module):
         # Activation
         self.activation = activation
       
+      
         self.device = torch.device('cpu')
         self.to(self.device)
-        print(self, self.device)
         
 
     def forward(self, x):
@@ -69,14 +69,14 @@ class ValueNet(nn.Module):
         
         """
         
-        x1 = self.activation(self.fc1(x)) 
-        x2 = self.activation(self.fc2(x1)) 
-        x3 = self.fc3(x2) 
+        x = self.activation(self.fc1(x)) 
+        x = self.activation(self.fc2(x)) 
+        x = self.fc3(x) 
         
-        return x3
+        return x
     
 
-    def jacobian_value(self, x):
+    def jacobian(self, x):
         """
         Calculate and return the jacobian of neural network output with respect to a single input
         
@@ -85,7 +85,7 @@ class ValueNet(nn.Module):
         return j
     
     
-    def batch_jacobian_value(self, x):
+    def batch_jacobian(self, x):
         """
         Returns the jacobians of multiple inputs
         """
@@ -94,7 +94,7 @@ class ValueNet(nn.Module):
     
     
 
-    def hessian_value(self, x):
+    def hessian(self, x):
         """
         Calculate and return the hessian of the neural network prediction with respect to a single input
         
@@ -102,7 +102,7 @@ class ValueNet(nn.Module):
         h = torch.autograd.functional.hessian(self.forward, x).squeeze()
         return h
 
-    def batch_hessian_value(self, x):
+    def batch_hessian(self, x):
         """
         Returns the hessians of the multiple inputs 
         

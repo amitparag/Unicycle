@@ -9,7 +9,8 @@ from residual_network import ResidualNet
 
 
 
-def train(size_of_training_dataset = 3000,
+def train(net,
+          size_of_training_dataset = 3000,
           xrange_training_data     = [-2.1, 2.1],
           yrange_training_data     = [-2.1, 2.1],
           zrange_training_data     = [-2.*np.pi, 2.*np.pi], #theta
@@ -19,11 +20,7 @@ def train(size_of_training_dataset = 3000,
           maxiters                 = 1000,
           state_weight             = 1.,
           control_weight           = 1.,
-          # Neural Network params
-          input_features           = 3,
-          output_features          = 1,
-          nhiddenunits             = 64,
-          activation               = nn.Tanh(),
+          
           learning_rate            = 1e-3,
           epochs                   = 10000,
           batchsize                = 1000,
@@ -35,11 +32,11 @@ def train(size_of_training_dataset = 3000,
     
     @params:
         # Parameters of training dataset.
-        
-        1: size_of_training_dataset.
-        2: xrange_training_data = the range of x to sample from, when creating the training data.
-        3: yrange_training_data = the range of y to sample from, when creating the training data.
-        4: zrange_training_data = the range of z to sample from, when creating the training data.
+        1. neural_net           = network to be trained
+        2: size_of_training_dataset.
+        3: xrange_training_data = the range of x to sample from, when creating the training data.
+        4: yrange_training_data = the range of y to sample from, when creating the training data.
+        5: zrange_training_data = the range of z to sample from, when creating the training data.
             Default ranges of x, y, theta:
                 x -> [-2.1, 2.1]
                 y -> [-2.1, 2.1]
@@ -47,22 +44,19 @@ def train(size_of_training_dataset = 3000,
         
         # Parameters given to crocoddyl to generate training data
         
-        5: horizon        = time horizon for the ddp solver, T
-        6: stop           = ddp.th_stop
-        7: maxiters       = maximum iterations allowed for solver
-        8: state_weight   = weight of the state vector
-        9: control_weight = weight of the control vector
+        6: horizon        = time horizon for the ddp solver, T
+        7: stop           = ddp.th_stop
+        8: maxiters       = maximum iterations allowed for solver
+        9: state_weight   = weight of the state vector
+        10: control_weight = weight of the control vector
         
         # Parameters of the neural network
         
-        10: input_features  = number of columns of the dataset. 3, for x, y, z
-        11: output_features = number of columns to ytrain. 1, since we are modelling ddp.cost
-        12: nhiddenunits    = number of units in each hidden layer
-        13: activation      = use either tanh() or relu()
-        14: learning_rate   = 1e-3
-        15: epochs          = number of epochs for training
-        16: batchsize       = batchsize of data during training
-        17: save_name       = if a str is given, then the net will be saved. 
+       
+        11: learning_rate   = 1e-3
+        12: epochs          = number of epochs for training
+        13: batchsize       = batchsize of data during training
+        14: save_name       = if a str is given, then the net will be saved. 
         
     """
 
@@ -90,26 +84,14 @@ def train(size_of_training_dataset = 3000,
     dataset = torch.utils.data.TensorDataset(positions,values)
     dataloader = torch.utils.data.DataLoader(dataset, batch_size = batchsize) 
 
-    # Initialize an untrained  network
-    
-    if name.lower=="value":
-        
-        net = ValueNet(in_features = input_features,
-                       out_features = output_features,
-                       nhiddenunits = nhiddenunits,
-                       activation   = activation)
-    else:
-        net = ResidualNet(in_features = input_features,
-                          out_features = output_features,
-                          nhiddenunits = nhiddenunits,
-                          activation   = activation)
-        
+
 
     criterion = torch.nn.MSELoss(reduction='sum')
     optimizer = torch.optim.Adam(net.parameters(), lr = learning_rate)  
-
+    net.float()
     net.train()
-    print("\n Training ... \n")
+    print(f"\n Training for {epochs} epochs... \n")
+    print(f"\n Dataset size = {size_of_training_dataset}, Batchsize = {batchsize} \n")
     for epoch in tqdm(range(epochs)):        
         for data, target in dataloader: 
 
@@ -129,7 +111,7 @@ def train(size_of_training_dataset = 3000,
     net.eval()
     ypred = net(xtest)
     error = ypred.detach() - ytest
-    print(f'Mean Error:{torch.mean(error)}')
+    print(f' Mean Error:{torch.mean(error)}')
     
     if save_name is not None:
         torch.save(net, "../networks/"+save_name+".pth")
@@ -140,6 +122,27 @@ def train(size_of_training_dataset = 3000,
 if __name__=='__main__':
     
     import torch
+    import torch.nn as nn
+    from value_network import ValueNet
+    from residual_network import ResidualNet
     
-    train(name="value", save_name='value')
-    train(name='residual',nhiddenunits=128,output_features=5,save_name='residual')
+        
+    # Neural Network params for Value network
+    nhiddenunits             = 64
+    activation               = nn.Tanh()   
+    net1 = ValueNet(n_hiddenUnits = nhiddenunits,        ## Initialize an untrained value network
+                   activation    = activation)
+    
+    # Neural Network params for Residual network
+    nhiddenunits             = 256
+    activation               = nn.Tanh()   
+    net2 = ResidualNet(n_hiddenUnits = nhiddenunits,    ## Initialize an untrained residual network
+                      activation     = activation)
+        
+
+    
+    
+    
+    #train(net1,save_name='value')
+    
+    train(net2,save_name='residual')

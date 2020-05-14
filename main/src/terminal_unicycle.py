@@ -34,8 +34,8 @@ class FeedforwardUnicycle(crocoddyl.ActionModelAbstract):
         # This is irritating. Converting numpy to torch everytime.
         x = torch.tensor(x, dtype = torch.float32).resize_(1, 3)
         
-        data.Lx = self.net.jacobian_value(x).detach().numpy()
-        data.Lxx = self.net.hessian_value(x).detach().numpy()
+        data.Lx = self.net.jacobian(x).detach().numpy()
+        data.Lxx = self.net.hessian(x).detach().numpy()
         
         
 class ResidualUnicycle(crocoddyl.ActionModelAbstract):
@@ -96,8 +96,8 @@ class ResidualUnicycle(crocoddyl.ActionModelAbstract):
             data.Lxx = self.net.approx_hessian(x).detach().numpy()
             
         else:
-            data.Lx = self.net.jacobian_value(x).detach().numpy()
-            data.Lxx = self.net.hessian_value(x).detach().numpy() 
+            data.Lx = self.net.jacobian(x).detach().numpy()
+            data.Lxx = self.net.hessian(x).detach().numpy() 
 
         
         
