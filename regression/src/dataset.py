@@ -16,12 +16,12 @@ class Datagen:
     
     def values(positions,
                terminal_model = None,
-               horizon=30,
-               stop=1e-9,
-               maxiters=1000,
-               state_weight=1.,
-               control_weight=1.,
-               as_tensor:bool=False):
+               horizon        = 30,
+               precision      = 1e-9,
+               maxiters       = 1000,
+               state_weight   = 1.,
+               control_weight = 1.,
+               as_tensor      = False):
         
         """
         Get the values after solving the problem with crocoddyl.
@@ -54,11 +54,11 @@ class Datagen:
                 
             ddp = solve_problem(terminal_model = terminal_model,
                                 initial_configuration = position,
-                                horizon= horizon,
-                                stop= stop,
-                                maxiters=maxiters,
-                                state_weight=state_weight,
-                                control_weight=control_weight)
+                                horizon = horizon,
+                                precision = precision,
+                                maxiters = maxiters,
+                                state_weight = state_weight,
+                                control_weight = control_weight)
             
             values.append([ddp.cost])
             

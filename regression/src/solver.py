@@ -10,7 +10,7 @@ import torch
 def solve_problem(terminal_model=None,
                   initial_configuration=None,
                   horizon:int=30,
-                  stop:float=1e-9,
+                  precision:float=1e-9,
                   maxiters:int=1000,
                   state_weight:float=1.,
                   control_weight:float=1.):
@@ -55,7 +55,7 @@ def solve_problem(terminal_model=None,
 
         
     ddp         = crocoddyl.SolverDDP(problem)
-    ddp.th_stop = stop
+    ddp.th_stop = precision
     
     ddp.solve([], [], maxiters)
     return ddp

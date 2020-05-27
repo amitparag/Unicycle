@@ -16,7 +16,7 @@ def train(net,
           zrange_training_data     = [-2.*np.pi, 2.*np.pi], #theta
           # DDP solver params 
           horizon                  = 30,
-          stop                     = 1e-9,
+          precision                = 1e-9,
           maxiters                 = 1000,
           state_weight             = 1.,
           control_weight           = 1.,
@@ -67,16 +67,16 @@ def train(net,
                                          xlim = xrange_training_data,
                                          ylim = yrange_training_data,
                                          zlim = zrange_training_data,
-                                         as_tensor=True)
+                                         as_tensor = True)
     
     # Corresponding ddp.cost for ytrain    
-    values    = Datagen.values(positions=positions,
-                               horizon= horizon,
-                               stop= stop,
-                               maxiters=maxiters,
-                               state_weight=state_weight,
-                               control_weight=control_weight,
-                               as_tensor=True)
+    values    = Datagen.values(positions = positions,
+                               horizon   = horizon,
+                               precision = precision,
+                               maxiters  = maxiters,
+                               state_weight   = state_weight,
+                               control_weight = control_weight,
+                               as_tensor = True)
     
     
 
@@ -143,6 +143,6 @@ if __name__=='__main__':
     
     
     
-    #train(net1,save_name='value')
+    train(net1,save_name='value')
     
     train(net2,save_name='residual')
